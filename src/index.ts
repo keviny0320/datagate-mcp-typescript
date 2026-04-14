@@ -7,7 +7,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { DatagateClient } from "./client.js";
+import { DatagateClient, DatagateError } from "datagate";
 
 // ---------------------------------------------------------------------------
 // Read config from environment
@@ -23,7 +23,7 @@ if (!apiKey) {
 }
 
 const baseUrl = process.env.DATAGATE_URL ?? "https://api.datagate.dev";
-const client = new DatagateClient(baseUrl, apiKey);
+const client = new DatagateClient({ apiKey, baseUrl });
 
 // ---------------------------------------------------------------------------
 // MCP server
@@ -80,7 +80,8 @@ server.tool(
 
       return { content: [{ type: "text" as const, text: lines.join("\n") }] };
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = err instanceof DatagateError ? `${err.statusCode}: ${err.message}` :
+        err instanceof Error ? err.message : String(err);
       return { content: [{ type: "text" as const, text: `Error listing datasets: ${message}` }] };
     }
   },
@@ -111,24 +112,25 @@ server.tool(
   },
   async ({ dataset_ids, text, top_k, filters }) => {
     try {
-      const result = await client.query(dataset_ids, text, top_k, filters);
+      const result = await client.query({
+        text,
+        datasetIds: dataset_ids,
+        topK: top_k,
+        filters,
+      });
 
-      const results = result.results ?? [];
-      const warnings = result.warnings ?? [];
-      const queryId = result.query_id ?? "unknown";
+      const lines: string[] = [`Query ID: ${result.query_id}`, `Results: ${result.results.length}\n`];
 
-      const lines: string[] = [`Query ID: ${queryId}`, `Results: ${results.length}\n`];
-
-      if (warnings.length > 0) {
+      if (result.warnings.length > 0) {
         lines.push("Warnings:");
-        for (const w of warnings) {
+        for (const w of result.warnings) {
           lines.push(`  - ${w}`);
         }
         lines.push("");
       }
 
-      for (let i = 0; i < results.length; i++) {
-        const r = results[i];
+      for (let i = 0; i < result.results.length; i++) {
+        const r = result.results[i];
         let line = `[${i + 1}] Score: ${r.score.toFixed(4)} | Dataset: ${r.dataset_id}\n`;
         line += `    ID: ${r.id}\n`;
         if (r.metadata && Object.keys(r.metadata).length > 0) {
@@ -137,13 +139,14 @@ server.tool(
         lines.push(line);
       }
 
-      if (results.length === 0) {
+      if (result.results.length === 0) {
         lines.push("No results found.");
       }
 
       return { content: [{ type: "text" as const, text: lines.join("\n") }] };
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = err instanceof DatagateError ? `${err.statusCode}: ${err.message}` :
+        err instanceof Error ? err.message : String(err);
       return { content: [{ type: "text" as const, text: `Query failed: ${message}` }] };
     }
   },
