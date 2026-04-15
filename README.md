@@ -95,7 +95,7 @@ Use `list_datasets` first to see what filter fields are available for each datas
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `DATAGATE_API_KEY` | Yes | — | Your Datagate API key (`dg_live_...`) |
-| `DATAGATE_URL` | No | `https://api.datagate.dev` | API base URL (set to `http://localhost:8080` for local dev) |
+| `DATAGATE_URL` | No | `https://api.getdatagate.com` | API base URL (set to `http://localhost:8080` for local dev) |
 
 ## Development
 

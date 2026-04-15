@@ -17,12 +17,12 @@ const apiKey = process.env.DATAGATE_API_KEY;
 if (!apiKey) {
   console.error(
     "DATAGATE_API_KEY environment variable is required.\n" +
-      "Get your API key at https://datagate.dev",
+      "Get your API key at https://getdatagate.com",
   );
   process.exit(1);
 }
 
-const baseUrl = process.env.DATAGATE_URL ?? "https://api.datagate.dev";
+const baseUrl = process.env.DATAGATE_URL ?? "https://api.getdatagate.com";
 const client = new DatagateClient({ apiKey, baseUrl });
 
 // ---------------------------------------------------------------------------
