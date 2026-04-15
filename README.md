@@ -100,7 +100,7 @@ Use `list_datasets` first to see what filter fields are available for each datas
 ## Development
 
 ```bash
-git clone https://github.com/kevinyu/datagate-mcp-typescript.git
+git clone https://github.com/keviny0320/datagate-mcp-typescript.git
 cd datagate-mcp-typescript
 npm install
 
